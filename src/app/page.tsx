@@ -1,5 +1,9 @@
 'use client'
 
+import { onAuthStateChanged } from 'firebase/auth'
+import { useState } from 'react'
+import { auth } from '../../firebaseConfig'
+import { useRouter } from "next/navigation";
 import Header from './components/header'
 import Scheduler from 'devextreme-react/scheduler'
 import 'devextreme/dist/css/dx.light.css'
@@ -8,6 +12,16 @@ import useDataFetch from './fetchAppointmentData'
 export default function Home() {
   const currentDate = new Date()
   const data = useDataFetch()
+  const [uid, setUid] = useState('')
+  const router = useRouter()
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setUid(user.uid)
+    } else {
+      router.push("/login")
+    }
+  })
 
   return (
     <main className='flex w-screen h-screen'>
