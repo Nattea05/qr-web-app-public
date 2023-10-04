@@ -212,6 +212,7 @@ export default function Home() {
               <span className='text-xl font-bold'>Time</span>
               {isSlotsLoaded &&
                 <select name="selectedTime" value={newAppointmentData.selectedTime} onChange={(e) => handleSelection(e)} className='h-8 mt-2 pl-2 bg-white border-2 border-gray-300 rounded-full overflow-ellipsis'>
+                  <option value="" disabled>Select a date</option>
                   {Array.from(slots).map((slot) => (
                     <option key={slot} value={slot}>{slot}</option>
                   ))}
