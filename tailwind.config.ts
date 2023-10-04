@@ -14,7 +14,8 @@ const config: Config = {
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       colors: {
-        petgreen: '#45e14f'
+        petgreen: '#45e14f',
+        activepetgreen: '#22d12d'
       },
     },
   },

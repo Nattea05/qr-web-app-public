@@ -9,7 +9,7 @@ export default function Header() {
     const pathname = usePathname()
 
     return (
-        <header className='h-full w-72 flex flex-col shadow-xl'>
+        <header className='h-full w-72 fixed flex flex-col shadow-xl'>
             <Link href='../' className='w-full h-1/6 flex justify-around items-center -space-x-10'>
                 <Image
                     src='/petlogo.svg'
