@@ -170,6 +170,7 @@ export default function Home() {
               <span className='text-xl font-bold'>Patient</span>
               {newAppointmentData.selectedClient &&
                 <select name="selectedPet" value={newAppointmentData.selectedPet} onChange={(e) => handleSelection(e)} className='h-8 mt-2 pl-2 bg-white border-2 border-gray-300 rounded-full overflow-ellipsis'>
+                  <option value="" disabled>Select a pet</option>
                   {Object.keys(petData).map((ownID) =>
                     ownID === newAppointmentData.selectedClient ? (
                       Object.keys(petData[ownID]).map((petID) => (
