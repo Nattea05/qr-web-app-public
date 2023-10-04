@@ -10,7 +10,7 @@ import Scheduler, { Editing } from 'devextreme-react/scheduler'
 import Popup, { ToolbarItem } from 'devextreme-react/popup';
 import 'devextreme/dist/css/dx.light.css'
 import useDataFetch from './fetchAppointmentData'
-import { createTimeSlots } from './fetchTimeSlots'
+import createTimeSlots from './fetchTimeSlots'
 import Image from "next/image"
 import Link from 'next/link';
 import moment from 'moment';

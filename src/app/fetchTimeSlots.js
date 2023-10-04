@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
 
-export function createTimeSlots(fromTime, toTime, bookedSlotsSet, selectedDate) {
+export default function createTimeSlots(fromTime, toTime, bookedSlotsSet, selectedDate) {
     const timeSlotInterval = 30
     let startTime = moment(fromTime, "HH:mm");
     let endTime = moment(toTime, "HH:mm");
