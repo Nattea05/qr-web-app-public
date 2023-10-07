@@ -158,6 +158,7 @@ export default function ManageAppointment() {
 
         const appointmentRef = ref_db(db, "appointments/" + appointmentDetails.appointmentID)
         const emrRef = ref_db(db, "emr_list/" + appointmentDetails.appointmentID + "/")
+        const historyRef = ref_db(db, "appointment_history/" + appointmentDetails.appointmentID + "/")
         const vitalsInputs = document.getElementById('vitals')?.querySelectorAll('input')
         const candhInputs = document.getElementById('candh')?.querySelectorAll('input, select')
         const maxLength = Math.max(
@@ -192,6 +193,14 @@ export default function ManageAppointment() {
                 subjective: updatedData.subjective,
                 assessment: updatedData.assessment,
                 objective: updatedData.objective
+            })
+            set(historyRef, {
+                date: moment(appointmentDetails.startDate).format("YYYY-MM-DD"),
+                ownID: appointmentDetails.clientID,
+                petID: appointmentDetails.patientID,
+                reason: appointmentDetails.description,
+                time: moment(appointmentDetails.startDate).format("HH:mm"),
+                vetIndex: appointmentDetails.vetIndex
             })
             remove(appointmentRef)
             router.replace("../")
@@ -246,7 +255,7 @@ export default function ManageAppointment() {
                     <div className="flex flex-col py-3 w-7/12 h-full rounded-3xl border-2 border-gray-300">
                         <span className="ml-5 text-3xl font-semibold">Visit Reason</span>
                         <p className="mt-2 w-11/12 h-5/6 max-h-[161px] self-center text-base overflow-scroll">
-                            Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quibusdam dicta, sunt rerum unde quaerat veritatis. Eos, voluptate. Nemo, sapiente? Vero reprehenderit quo cum fuga molestias voluptas fugiat, velit repellat nesciunt. Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime autem corrupti voluptas, molestias iure ducimus provident, quia neque eveniet facilis doloremque eum commodi quos saepe ab laboriosam voluptates, sed exercitationem! Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni, in rerum ea dicta at mollitia vero et possimus recusandae qui velit ipsum. Nobis repellendus laborum inventore numquam incidunt accusantium dignissimos! Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic molestiae quis ab dolorem impedit deserunt quos rerum at necessitatibus quidem, ad voluptates exercitationem nesciunt quasi ut sint beatae quaerat. Neque. Lorem ipsum dolor sit amet consectetur adipisicing elit. Vel sunt illum id perferendis porro, ex a consectetur sequi nobis amet aspernatur eius. Magnam, natus! Quibusdam ducimus explicabo animi dolores blanditiis!
+                            {appointmentDetails.description}
                         </p>
                     </div>
                 </div>
@@ -274,7 +283,7 @@ export default function ManageAppointment() {
                         <textarea name="assessment" value={diagnosisData.assessment} onChange={(e) => handleTextAreaChange(e)} placeholder="Enter factual assessments" className="w-[96%] h-5/6 mt-3 p-4 self-center rounded-3xl border-2 border-gray-300" />
                     </div>
                 </div>
-                <div className="flex w-11/12 h-44 items-center">
+                <div className="flex w-11/12 h-48 items-center">
                     <button
                         onClick={handleCompletion}
                         className='flex ml-auto w-96 h-16 justify-center items-center text-base rounded-full bg-petgreen active:bg-activepetgreen shadow-xl text-white font-semibold'

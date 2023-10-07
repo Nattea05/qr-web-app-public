@@ -83,6 +83,7 @@ export default function useDataFetch(uid) {
                         patient: value.petID.slice(5),
                         patientID: value.petID,
                         client: userData[value.ownID].email,
+                        clientID: value.ownID,
                         img: imageData.find((obj) => obj.imageName === value.petID).url,
                         appointmentID: key,
                         vetIndex: vetIndex
