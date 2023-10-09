@@ -18,7 +18,10 @@ export default function ManageAppointment() {
     const [diagnosisData, setDiagnosisData] = useState({
         appointmentID: '',
         subjective: '',
-        objective: {},
+        objective: {
+            vitals: {},
+            candh: {},
+        },
         assessment: ''
     })
 
@@ -169,8 +172,8 @@ export default function ManageAppointment() {
         for (let i = 0; i < maxLength; i++) {
             if (vitalsInputs && vitalsInputs[i]) {
                 const fieldName = vitalsInputs[i].name
-                updatedData.objective = {
-                    ...updatedData.objective,
+                updatedData.objective.vitals = {
+                    ...updatedData.objective.vitals,
                     [fieldName]: vitalsInputs[i].value
                 }
             }
@@ -178,8 +181,8 @@ export default function ManageAppointment() {
             if (candhInputs && candhInputs[i]) {
                 const element = candhInputs[i] as HTMLInputElement | HTMLSelectElement
                 const fieldName = element.name
-                updatedData.objective = {
-                    ...updatedData.objective,
+                updatedData.objective.candh = {
+                    ...updatedData.objective.candh,
                     [fieldName]: element.value
                 }
             }
