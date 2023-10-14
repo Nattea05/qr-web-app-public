@@ -24,11 +24,11 @@ export default function Header() {
             </Link>
             <nav className="h-3/4 space-y-5 flex flex-col">
                 {[
-                    {title: 'Calendar', url: '../', component: Calendar},
-                    {title: 'Client List', url: '../nav/client', component: Client},
-                    {title: 'Patient List', url: '../nav/patient', component: Patient},
-                    {title: 'Staff List', url: '../nav/staff', component: Staff},
-                    {title: 'Scan QR', url: '../nav/scan-qr', component: QRCode}
+                    {title: 'Calendar', url: '/', component: Calendar},
+                    {title: 'Client List', url: '/nav/client', component: Client},
+                    {title: 'Patient List', url: '/nav/patient', component: Patient},
+                    {title: 'Staff List', url: '/nav/staff', component: Staff},
+                    {title: 'Scan QR', url: '/nav/scan-qr', component: QRCode}
                 ].map(({title, url, component}) => {
                     const isActive = (pathname === url.replace(/^\.\./, ''))
 
