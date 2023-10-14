@@ -35,15 +35,22 @@ export default function PatientList() {
   const [uid, setUid] = useState('')
   const router = useRouter()
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      setUid(user.uid)
-    } else {
-      router.push("/login")
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUid(user.uid)
+      } else {
+        router.push("/login")
+      }
+    })
+
+    return () => {
+      unsubscribe()
     }
-  })
+  }, [])
 
   useEffect(() => {
+    
     const userRef = ref_db(db, "users")
     const userListener = onValue(userRef, (snapshot) => {
       const data = snapshot.val()
