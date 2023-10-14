@@ -7,7 +7,6 @@ import { ref as ref_storage, getDownloadURL, getMetadata, listAll } from 'fireba
 import { db, storage } from '../../../../../../../firebaseConfig'
 import Header from '../../../../../components/header'
 import moment from 'moment-timezone'
-import Link from 'next/link'
 import Image from "next/image";
 
 export default function EmrDetails() {
