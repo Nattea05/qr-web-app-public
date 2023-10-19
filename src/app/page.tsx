@@ -62,7 +62,7 @@ export default function Home() {
   })
   const currentDate = new Date()
   const [uid, setUid] = useState('')
-  const data = useDataFetch(uid) as Data[]
+  const [data, vetIndex] = useDataFetch(uid) as [Data[], number]
   const router = useRouter()
   const initState = {
     popupVisible: false,
@@ -88,7 +88,7 @@ export default function Home() {
     if (e.appointmentData.text) {
       dispatch({ popupVisible: true, editData: {...e.appointmentData} })
     } else {
-      emptyDispatch({ popupVisible: true, editData: {...e.appointmentData}, vetIndex: data[0].vetIndex })
+      emptyDispatch({ popupVisible: true, editData: {...e.appointmentData}, vetIndex: vetIndex })
     }
   }
 

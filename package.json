@@ -30,6 +30,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/uuid": "^9.0.4"
+    "@types/uuid": "^9.0.4",
+    "html5-qrcode": "^2.3.8"
   }
 }

@@ -43,7 +43,7 @@ export default function PatientDetails() {
                     {isEmrDataLoaded &&
                         Object.keys(emrData).map(key => {
                             const date = key.substring(5, 13)
-                            const time = key.match(/(\d{2})(\d{2})vet0/)
+                            const time = key.match(/(\d{2})(\d{2})vet/)
                             return (
                                 <Link href={`/nav/patient/patient-details/emr-history/emr-details?emrDetails=${encodeURIComponent(JSON.stringify({[key]: emrData[key], ownID: Object.keys(pet)[0]}))}`} key={key} className='p-3 w-11/12 text-4xl border-b-4 border-black'>
                                     {moment(date, "YYYYMMDD").format("MMMM Do YYYY")}, {moment(time, "HHmm").format("h:mm A")}

@@ -4,6 +4,7 @@ import { ref as ref_storage, getDownloadURL, getMetadata, listAll } from "fireba
 import { db, storage } from "../../firebaseConfig";
 
 export default function useDataFetch(uid) {
+    const [vetIndex, setVetIndex] = useState(-1)
     const [appointmentData, setAppointmentData] = useState([])
     const [userData, setUserData] = useState([])
     const [imageData, setImageData] = useState([])
@@ -16,21 +17,21 @@ export default function useDataFetch(uid) {
         const appointmentRef = ref_db(db, "appointments")
         const userRef = ref_db(db, "users")
 
-        const valueListener = onValue(appointmentRef, (snapshot) => {
+        const appointmentListener = onValue(appointmentRef, (snapshot) => {
             const data = snapshot.val()
             setAppointmentData(data)
             setIsDataFetched(true)
         })
         
-        const valueListener2 = onValue(userRef, (snapshot) => {
+        const userListener = onValue(userRef, (snapshot) => {
             const data = snapshot.val()
             setUserData(data)
             setIsUserFetched(true)
         })    
 
         return () => {
-            valueListener()
-            valueListener2()
+            appointmentListener()
+            userListener()
         }
     }, [])
 
@@ -92,9 +93,10 @@ export default function useDataFetch(uid) {
                     })
                 }
             })
+            setVetIndex(userData[uid]?.vetIndex)
             setFormattedData(updatedData)
         }
     }, [isDataFetched, isUserFetched, isImageDataLoaded])
 
-    return formattedData
+    return [formattedData, vetIndex]
 }

@@ -10,7 +10,7 @@ export default function Header() {
 
     return (
         <header className='h-full w-72 fixed flex flex-col shadow-xl'>
-            <Link href='../' className='w-full h-1/6 flex justify-around items-center -space-x-10'>
+            <Link href='/' className='w-full h-1/6 flex justify-around items-center -space-x-10'>
                 <Image
                     src='/petlogo.svg'
                     alt='Pawsitivity Logo'
@@ -45,7 +45,7 @@ export default function Header() {
                 })}
             </nav>
             <hr className="w-5/6 border-1 rounded border-gray-300 self-center"></hr>
-            <div className="justify-center h-1/6 flex">
+            <Link href='/nav/profile' className="justify-center h-1/6 flex">
                 <svg width="100" height="100">
                     <mask id="circleMask">
                       <rect width="100%" height="100%" fill="black" />
@@ -58,7 +58,7 @@ export default function Header() {
                     <span className="font-semibold text-sm">Dr. Hailee S.</span>
                     <span className="font-medium text-xs text-gray-400">Veterinarian</span>
                 </div>
-            </div>
+            </Link>
         </header>
     )
 }

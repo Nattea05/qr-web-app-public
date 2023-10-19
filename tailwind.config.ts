@@ -15,7 +15,9 @@ const config: Config = {
       },
       colors: {
         petgreen: '#45e14f',
-        activepetgreen: '#22d12d'
+        activepetgreen: '#22d12d',
+        cancel: '#ff5454',
+        activecancel: '#ff1212',
       },
     },
   },

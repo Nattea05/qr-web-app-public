@@ -25,7 +25,7 @@ export default function EmrDetails() {
     const ownID = emrDetails["ownID"]
     const emrID = Object.keys(emrDetails)[0]
     const date = emrID.substring(5, 13)
-    const time = emrID.match(/(\d{2})(\d{2})vet0/)
+    const time = emrID.match(/(\d{2})(\d{2})vet/)
     const [petData, setPetData] = useState({})
     const [petImage, setPetImage] = useState('')
     const [appointmentData, setAppointmentData] = useState<AppointmentData | null>(null)
