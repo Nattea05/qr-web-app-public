@@ -80,6 +80,7 @@ export default function ScanQr() {
   function getCameraPermission() {
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
+        console.log(devices)
         setCameraIdList(devices)
         setCameraId(devices[0].id)
         setHtml5QrCode(new Html5Qrcode('reader'))
@@ -233,7 +234,7 @@ export default function ScanQr() {
               </button>
             </div>
           }
-          <button className='-mt-8 underline text-2xl font-medium' onClick={() => handleImageToggle()}>
+          <button className='-mt-3 underline text-2xl font-medium' onClick={() => handleImageToggle()}>
             {isImagedToggled ? 'Scan using Camera directly' : 'Scan an Image file'}
           </button>
         </div>
