@@ -80,7 +80,6 @@ export default function ScanQr() {
   function getCameraPermission() {
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length) {
-        console.log(devices)
         setCameraIdList(devices)
         setCameraId(devices[0].id)
         setHtml5QrCode(new Html5Qrcode('reader'))
