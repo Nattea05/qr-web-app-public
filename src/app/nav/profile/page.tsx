@@ -13,14 +13,6 @@ export default function Profile() {
     const [userData, setUserData] = useState<any>();
     const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            setUid(user.uid)
-        } else {
-            router.push('/login')
-        }
-    })
-
     function handleSignOut() {
         signOut(auth).then(() => {
             router.replace('/login')
@@ -28,6 +20,20 @@ export default function Profile() {
             console.error("Error signing out: ", error)
         })
     }
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setUid(user.uid)
+            } else {
+                router.push('/login')
+            }
+        })
+
+        return () => {
+            unsubscribe()
+        }
+    }, [])
 
     useEffect(() => {
         const userRef = ref_db(db, "users/" + uid)
