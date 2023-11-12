@@ -7,11 +7,13 @@ export default function useDataFetch(uid) {
     const [vetIndex, setVetIndex] = useState(-1)
     const [appointmentData, setAppointmentData] = useState([])
     const [userData, setUserData] = useState([])
-    const [imageData, setImageData] = useState([])
+    const [petImageData, setPetImageData] = useState([])
+    const [userImageData, setUserImageData] = useState([])
     const [formattedData, setFormattedData] = useState([])
     const [isDataFetched, setIsDataFetched] = useState(false)
     const [isUserFetched, setIsUserFetched] = useState(false)
-    const [isImageDataLoaded, setIsImageDataLoaded] = useState(false)
+    const [isPetImageDataLoaded, setIsPetImageDataLoaded] = useState(false)
+    const [isUserImageDataLoaded, setIsUserImageDataLoaded] = useState(false)
 
     useEffect(() => {
         const appointmentRef = ref_db(db, "appointments")
@@ -38,16 +40,17 @@ export default function useDataFetch(uid) {
     useEffect(() => {
         if (isDataFetched && isUserFetched) {
             let indexCount = 1
+            // Retrieve pet images
             Object.entries(userData).forEach(([key, value], index) => {
-                const imageRef = ref_storage(storage, "pet-profile-pictures/" + key)
-                listAll(imageRef)
+                const petImageRef = ref_storage(storage, "pet-profile-pictures/" + key)
+                listAll(petImageRef)
                     .then((res) => {
                         const promises = res.items.map(async (itemRef) => {
                             const metadataPromise = getMetadata(itemRef);
                             const downloadURLPromise = getDownloadURL(itemRef);
                             try {
                                 const [metadata, url] = await Promise.all([metadataPromise, downloadURLPromise]);
-                                setImageData(imageData => [...imageData, {imageName: metadata.name, url: url}]);
+                                setPetImageData(petImageData => [...petImageData, {imageName: metadata.name, url: url}]);
                             } catch (error) {
                                 console.error("Error received: ", error);
                             }
@@ -55,7 +58,7 @@ export default function useDataFetch(uid) {
                         Promise.all(promises)
                             .then(() => {
                                 if (indexCount === Object.entries(userData).length) {
-                                    setIsImageDataLoaded(true);
+                                    setIsPetImageDataLoaded(true);
                                 }
                                 indexCount++;
                             })
@@ -71,7 +74,27 @@ export default function useDataFetch(uid) {
     }, [userData, isDataFetched, isUserFetched])
 
     useEffect(() => {
-        if (isDataFetched && isUserFetched && isImageDataLoaded) {
+        if (isPetImageDataLoaded) {
+            //Retrieve user images
+            Object.entries(userData).forEach(([key, value], index) => {
+                const userImageRef = ref_storage(storage, "user-profile-pictures/" + key)
+                getDownloadURL(userImageRef)
+                    .then((url) => {
+                        setUserImageData(userImageData => [...userImageData, {imageName: key, url: url}])
+                        setIsUserImageDataLoaded(true)
+                    })
+                    .catch((error) => {
+                        if (error.code === "storage/object-not-found") {
+                        } else {
+                            console.error("Error receiving image: " + error)
+                        }
+                    })                
+            })
+        }
+    }, [isPetImageDataLoaded])
+
+    useEffect(() => {
+        if (isDataFetched && isUserFetched && isPetImageDataLoaded, isUserImageDataLoaded) {
             const vetIndex = userData[uid]?.vetIndex
             const updatedData = [...formattedData]
             Object.entries(appointmentData).forEach(([key, value], index) => {
@@ -83,20 +106,20 @@ export default function useDataFetch(uid) {
                         description: value.reason,
                         patient: value.petID.slice(5),
                         patientID: value.petID,
-                        client: userData[value.ownID].email,
+                        client: userData[value.ownID].firstName + " " + userData[value.ownID].lastName,
                         clientID: value.ownID,
-                        img: imageData.find((obj) => obj.imageName === value.petID).url,
+                        patientImg: petImageData.find((obj) => obj.imageName === value.petID).url,
+                        clientImg: (userImageData.find((obj) => obj.imageName === value.ownID) || { url: '' }).url,
                         appointmentID: key,
                         vetIndex: vetIndex
-                        //add patient profile img in the future
-                        //and change patient name
                     })
+
                 }
             })
             setVetIndex(userData[uid]?.vetIndex)
             setFormattedData(updatedData)
         }
-    }, [isDataFetched, isUserFetched, isImageDataLoaded])
+    }, [isDataFetched, isUserFetched, isPetImageDataLoaded, isUserImageDataLoaded])
 
     return [formattedData, vetIndex]
 }

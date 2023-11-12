@@ -67,7 +67,7 @@ export default function ScanQr() {
           reader.readAsDataURL(file)
 
           let fileName = file.name
-          let droppedFile = new File([file], file.name ,{ type: 'image/*' })
+          let droppedFile = new File([file], file.name , { type: 'image/*' })
           let container = new DataTransfer()
           container.items.add(droppedFile)
           const inputElement = document.getElementById('qr-input-file') as HTMLInputElement
@@ -206,7 +206,7 @@ export default function ScanQr() {
                   ) : (
                   <AddPhoto />
                 )}
-                <input id='qr-input-file' type='file' accept='image/*' className=' flex py-2 w-full h-[10%] text-center' />
+                <input id='qr-input-file' type='file' accept='image/*' className='flex py-2 w-full h-[10%] text-center' />
               </div>
               <button className='flex p-5 w-fit h-14 justify-center items-center font-semibold text-lg rounded-2xl bg-petgreen active:bg-activepetgreen' onClick={() => scanImage()}>
                 Scan Image

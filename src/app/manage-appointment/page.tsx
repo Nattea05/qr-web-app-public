@@ -1,18 +1,25 @@
 'use client'
 
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useState, useEffect } from "react";
 import Header from "../components/header"
 import moment from 'moment';
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation"
-import { ref as ref_db, set, remove } from "firebase/database";
+import { ref as ref_db, set, remove, onValue } from "firebase/database";
 import { db } from "../../../firebaseConfig";
 import { v4 as uuid } from "uuid";
+import { ProfilePicture } from "../images/svg-logos/svg_logos";
 
 export default function ManageAppointment() {
+    interface PatientData {
+        [key: string]: string
+    }
+
     const searchParams = useSearchParams()
     const appointmentDetailsString = searchParams.get('appointment') || '{}'
     const appointmentDetails = appointmentDetailsString ? JSON.parse(appointmentDetailsString) : {}
+    const [patientData, setPatientData] = useState<PatientData>({})
+    const [isPatientDataLoaded, setIsPatientDataLoaded] = useState(false)
     const router = useRouter()
     const [children, setChildren] = useState<ReactElement[]>([])
     const [diagnosisData, setDiagnosisData] = useState({
@@ -210,6 +217,21 @@ export default function ManageAppointment() {
         }
     }
 
+    useEffect(() => {
+        const patientRef = ref_db(db, "pets/" + appointmentDetails.clientID + "/" + appointmentDetails.patientID)
+        const patientListener = onValue(patientRef, (snapshot) => {
+            const data = snapshot.val()
+            setPatientData(data)
+            setIsPatientDataLoaded(true)
+        })
+
+        return (() => {
+            patientListener()
+        })
+    }, [])
+
+    useEffect(() => {console.log(patientData)}, [isPatientDataLoaded])
+
     return (
         <main className='flex w-screen h-max'>
             <Header />
@@ -223,46 +245,73 @@ export default function ManageAppointment() {
                     <div className="flex flex-col w-1/2 h-full px-5">
                         <span className="text-5xl font-light text-gray-400">Patient</span>
                         <div className="flex-1 flex flex-row pt-3 items-center">
-                            <Image src={appointmentDetails.img} alt="Patient Image" width={130} height={130} className="rounded-full" />
+                            {appointmentDetails?.patientImg &&
+                                <Image src={appointmentDetails.patientImg} alt="Patient Image" width={130} height={130} className="rounded-full" />                            
+                            }
+                            {!appointmentDetails?.patientImg &&
+                                <ProfilePicture width={"200"} height={"200"} fill={"black"} />
+                            }
                             <span className="ml-3 text-4xl font-medium">{appointmentDetails.patient}</span>
                         </div>
                     </div>
                     <div className="flex flex-col w-1/2 h-full px-5">
                         <span className="text-5xl font-light text-gray-400">Client</span>
                         <div className="flex-1 flex flex-row pt-3 items-center">
-                            <Image src={appointmentDetails.img} alt="Patient Image" width={130} height={130} className="rounded-full" />
+                            <Image src={appointmentDetails.clientImg} alt="Patient Image" width={130} height={130} className="rounded-full" />
                             <span className="ml-3 text-4xl font-medium">{appointmentDetails.client}</span>
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-row justify-between mt-4 w-11/12 h-1/3">
-                    <div className="py-3 w-2/5 h-full rounded-3xl border-2 border-gray-300">
+                <div className="flex flex-row justify-between items-center mt-2 w-11/12 h-1/3">
+                    <div className="py-3 w-2/5 h-full max-h-[240px] overflow-scroll rounded-3xl border-2 border-gray-300">
                         <span className="ml-5 text-3xl font-semibold">General Info</span>
                         <div className="flex flex-row w-full h-5/6">
                             <ul className="flex flex-col px-5 w-1/3 h-full justify-evenly">
-                                <li>Species</li>
-                                <li>Breed</li>
-                                <li>Sex</li>
-                                <li>Date of Birth</li>
-                                <li>Weight</li>
+                                {patientData &&
+                                    Object.keys(patientData).map((field) => {
+                                        const formattedField = field.charAt(0).toUpperCase() + field.slice(1)
+
+                                        if (field === "conditions") {
+
+                                        } else {
+                                            return (
+                                                <li key={field}>{formattedField}</li>
+                                            )
+                                        }
+                                    })
+                                }
                             </ul>
                             <ul className="flex flex-col w-2/3 h-full justify-evenly font-semibold">
-                                <li>Placeholder</li>
-                                <li>Placeholder</li>
-                                <li>Placeholder</li>
-                                <li>Placeholder</li>
-                                <li>Placeholder</li>
+                                {patientData &&
+                                        Object.keys(patientData).map((field) => {
+                                            if (field === "conditions") {
+
+                                            } else {
+                                                return (
+                                                    <li key={field}>{patientData[field]}</li>
+                                                )
+                                            }
+                                        })
+                                }
                             </ul>
                         </div>
+                        <div className="flex-1 px-5">
+                            <span>Conditions</span>
+                            <div className="mt-3 w-full p-3 rounded-3xl border-2 border-gray-300">
+                                {patientData &&
+                                    <p className="max-h-[100px] overflow-scroll font-semibold">{patientData.conditions}</p>
+                                }
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex flex-col py-3 w-7/12 h-full rounded-3xl border-2 border-gray-300">
+                    <div className="flex flex-col py-3 w-7/12 h-full max-h-[240px] rounded-3xl border-2 border-gray-300">
                         <span className="ml-5 text-3xl font-semibold">Visit Reason</span>
                         <p className="mt-2 w-11/12 h-5/6 max-h-[161px] self-center text-base overflow-scroll">
                             {appointmentDetails.description}
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-col py-3 mt-4 w-11/12 rounded-3xl border-2 border-gray-300">
+                <div className="flex flex-col py-5 mt-2 w-11/12 rounded-3xl border-2 border-gray-300">
                     <span className="ml-5 text-3xl font-semibold">Diagnosis</span>
                     <div className="flex flex-col w-full h-56 mt-2">
                         <span className="ml-5 text-2xl font-semibold text-gray-400">Subjective</span>

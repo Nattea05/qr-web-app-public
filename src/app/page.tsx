@@ -2,12 +2,12 @@
 
 import { ref as ref_db, onValue, set, remove } from 'firebase/database'
 import { Unsubscribe, onAuthStateChanged } from 'firebase/auth'
-import { useEffect, useState, useReducer, useMemo, useRef } from 'react'
+import { useEffect, useState, useReducer, useRef } from 'react'
 import { db, auth } from '../../firebaseConfig'
 import { useRouter } from "next/navigation";
 import Header from './components/header'
 import Scheduler, { Editing } from 'devextreme-react/scheduler'
-import Popup, { ToolbarItem } from 'devextreme-react/popup';
+import Popup from 'devextreme-react/popup';
 import 'devextreme/dist/css/dx.light.css'
 import useDataFetch from './fetchAppointmentData'
 import createTimeSlots from './fetchTimeSlots'
@@ -24,7 +24,9 @@ export default function Home() {
 
   interface PetData {
     [petID: string]: {
+      age: string,
       breed: string,
+      conditions: string,
       name: string,
       sex: string,
       species: string,
@@ -105,14 +107,14 @@ export default function Home() {
       <div className='flex-1 h-full'>
         <div className='flex w-full h-1/5'>
           <div className='flex w-1/2 h-full'>
-            <Image src={state.editData.img} alt="Patient Image" width={100} height={100} className='rounded-full' />
+            <Image src={state.editData.patientImg} alt="Patient Image" width={100} height={100} className='rounded-full' />
             <div className='flex-1 flex flex-col justify-center pl-2'>
               <span className='text-xl font-bold'>Patient</span>
               <span className='text-base'>{state.editData.patient}</span>
             </div>
           </div>
           <div className='flex w-1/2 h-full'>
-            <Image src={state.editData.img} alt="Client Image" width={100} height={100} className='rounded-full' />
+            <Image src={state.editData.clientImg} alt="Client Image" width={100} height={100} className='rounded-full' />
             <div className='flex-1 flex flex-col justify-center pl-2'>
               <span className='text-xl font-bold'>Client</span>
               <span className='text-base'>{state.editData.client}</span>

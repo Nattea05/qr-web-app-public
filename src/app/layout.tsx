@@ -8,8 +8,8 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  title: 'Pawsitivity: Home',
-  description: 'Home Page',
+  title: 'Pawsitivity',
+  description: 'Pawsitivity',
   icons: {
     icon: '/favicon.png'
   }

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { ref as ref_db, onValue } from 'firebase/database'
 import { ref as ref_storage, getDownloadURL, getMetadata, listAll } from 'firebase/storage';
 import { db, storage } from '../../../../../../../firebaseConfig'
+import { ProfilePicture } from '@/app/images/svg-logos/svg_logos';
 import Header from '../../../../../components/header'
 import moment from 'moment-timezone'
 import Image from "next/image";
@@ -26,12 +27,16 @@ export default function EmrDetails() {
     const emrID = Object.keys(emrDetails)[0]
     const date = emrID.substring(5, 13)
     const time = emrID.match(/(\d{2})(\d{2})vet/)
-    const [petData, setPetData] = useState({})
+    const [petData, setPetData] = useState<Record<string, any>>({})
     const [petImage, setPetImage] = useState('')
     const [appointmentData, setAppointmentData] = useState<AppointmentData | null>(null)
+    const [clientData, setClientData] = useState<Record<string, any>>({})
+    const [clientImage, setClientImage] = useState<any>({})
     const [isPetDataLoaded, setIsPetDataLoaded] = useState(false)
     const [isPetImageLoaded, setIsPetImageLoaded] = useState(false)
     const [isAppointmentDataLoaded, setIsAppointmentDataLoaded] = useState(false)
+    const [isClientDataLoaded, setIsClientDataLoaded] = useState(false)
+    const [isClientImageLoaded, setIsClientImageLoaded] = useState(false)
 
     function capitalizeWords(str: string) {
         return str.split(/(?=[A-Z])/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
@@ -52,6 +57,13 @@ export default function EmrDetails() {
             const data = snapshot.val()
             setAppointmentData(data)
             setIsAppointmentDataLoaded(true)
+        })
+
+        const clientRef = ref_db(db, "users/" + ownID)
+        const clientListener = onValue(clientRef, (snapshot) => {
+            const data = snapshot.val()
+            setClientData(data)
+            setIsClientDataLoaded(true)
         })
 
         const petImageRef = ref_storage(storage, "pet-profile-pictures/" + ownID)
@@ -81,17 +93,32 @@ export default function EmrDetails() {
                 console.error("Error received: ", error)
             })
 
+        const clientImageRef = ref_storage(storage, "user-profile-pictures/" + ownID)
+        getDownloadURL(clientImageRef)
+            .then((url) => {
+                setClientImage(url)
+                setIsClientImageLoaded(true)
+            })
+            .catch((error) => {
+                if (error.code === "storage/object-not-found") {
+                    setClientImage('')
+                    setIsClientImageLoaded(true)
+                } else {
+                    console.error("Error retrieving client image: " + error)
+                }
+            })
+
         return () => {
             petListener()
             appointmentListener()
+            clientListener()
         }
     }, [])
 
     useEffect(() => {
-        if (isPetDataLoaded && isPetImageLoaded && isAppointmentDataLoaded) {
-            
+        if (isPetDataLoaded && isPetImageLoaded && isAppointmentDataLoaded && isClientDataLoaded && isClientImageLoaded) {
         }
-    }, [isPetDataLoaded, isPetImageLoaded, isAppointmentDataLoaded])
+    }, [isPetDataLoaded, isPetImageLoaded, isAppointmentDataLoaded, isClientDataLoaded, isClientImageLoaded])
 
     return (
         <main className='flex w-screen h-max'>
@@ -106,41 +133,62 @@ export default function EmrDetails() {
                     <div className="flex flex-col w-1/2 h-full px-5">
                         <span className="text-5xl font-light text-gray-400">Patient</span>
                         <div className="flex-1 flex flex-row pt-3 items-center">
-                            <Image src={petImage} alt="Patient Image" width={130} height={130} className="rounded-full" />
+                            <Image src={petImage} alt="Patient Image" width={130} height={130} className="w-[130px] h-[130px] object-cover rounded-full" />
                             <span className="ml-3 text-4xl font-medium">{emrDetails[emrID].patientID.slice(5)}</span>
                         </div>
                     </div>
                     <div className="flex flex-col w-1/2 h-full px-5">
                         <span className="text-5xl font-light text-gray-400">Client</span>
                         <div className="flex-1 flex flex-row pt-3 items-center">
-                            <Image src={petImage} alt="Patient Image" width={130} height={130} className="rounded-full" />
-                            <span className="ml-3 text-4xl font-medium">Client Name</span>
+                            {isClientImageLoaded && clientImage &&
+                                <Image src={clientImage} alt="Client Image" width={130} height={130} className="w-[130px] h-[130px] object-cover rounded-full" />
+                            }
+                            {isClientImageLoaded && !clientImage &&
+                                <ProfilePicture width='150' height='150' fill='black' />
+                            }
+                            {!isClientImageLoaded && !clientImage &&
+                                <ProfilePicture width='150' height='150' fill='black' />
+                            }
+                            <span className="ml-3 text-4xl font-medium">{clientData.firstName} {clientData.lastName}</span>
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-row justify-between mt-4 w-11/12 h-fit">
-                    <div className="py-3 w-2/5 h-full rounded-3xl border-2 border-gray-300">
+                <div className="flex flex-row justify-between items-center mt-4 w-11/12 h-fit gap-x-5">
+                    <div className="py-3 w-4/12 h-full rounded-3xl border-2 border-gray-300">
                         <span className="ml-5 text-3xl font-semibold">General Info</span>
                         <div className="flex flex-row py-3 w-full h-5/6">
                             <ul className="flex flex-col px-5 w-1/3 h-full gap-3 justify-evenly">
-                                <li>Species</li>
-                                <li>Breed</li>
-                                <li>Sex</li>
-                                <li>Date of Birth</li>
-                                <li>Weight</li>
+                            {isPetDataLoaded &&
+                                Object.keys(petData).filter(field => field !== "conditions" && field !== "name").map((field) => {
+                                    const formattedField = field.charAt(0).toUpperCase() + field.slice(1)
+                                    return (
+                                        <li key={field}>{formattedField}</li>
+                                    )
+                                })
+                            }
                             </ul>
                             <ul className="flex flex-col w-2/3 h-full gap-3 justify-evenly font-semibold">
-                                <li>Placeholder</li>
-                                <li>Placeholder</li>
-                                <li>Placeholder</li>
-                                <li>Placeholder</li>
-                                <li>Placeholder</li>
+                                {isPetDataLoaded &&
+                                    Object.keys(petData).filter(field => field !== "conditions" && field !== "name").map((field) => {
+                                        return (
+                                            <li key={field}>{petData[field]}</li>
+                                        )
+                                    })
+                                }
                             </ul>
                         </div>
                     </div>
-                    <div className="flex flex-col py-3 w-7/12 h-full rounded-3xl border-2 border-gray-300">
-                        <span className="ml-5 text-3xl font-semibold">Visit Reason</span>
-                        <p className="mt-2 w-11/12 h-5/6 max-h-[161px] self-center text-base overflow-scroll">
+                    <div className="flex flex-col py-3 w-4/12 h-full rounded-3xl border-2 border-gray-300">
+                        <span className="ml-3 text-3xl font-semibold">Conditions</span>
+                        <p className="mt-2 w-11/12 h-5/6 max-h-[161px] self-center text-base overflow-y-scroll">
+                            {isPetDataLoaded &&
+                                petData?.conditions
+                            }
+                        </p>
+                    </div>
+                    <div className="flex flex-col py-3 w-4/12 h-full rounded-3xl border-2 border-gray-300">
+                        <span className="ml-3 text-3xl font-semibold">Visit Reason</span>
+                        <p className="mt-2 w-11/12 h-5/6 max-h-[161px] self-center text-base overflow-y-scroll">
                             {appointmentData?.reason}
                         </p>
                     </div>
@@ -157,7 +205,7 @@ export default function EmrDetails() {
                         <div className="flex flex-row w-full h-fit items-center">
                             <span className="ml-5 text-2xl font-semibold text-gray-400">Objective</span>
                         </div>
-                        <div className="flex flex-row mt-5 w-full max-w-[1095px] h-full overflow-scroll self-center">
+                        <div className="flex flex-row mt-5 w-full max-w-[1095px] h-full overflow-y-scroll self-center">
                                 {!emrDetails[emrID].objective &&
                                     <span>No objective information was written.</span>
                                 }
