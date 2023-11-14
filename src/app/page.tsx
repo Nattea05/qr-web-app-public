@@ -15,6 +15,7 @@ import Image from "next/image"
 import Link from 'next/link';
 import moment from 'moment';
 import { Calendar, Time } from './images/appointment-form-img/appointment-form-img';
+import { ProfilePicture } from './images/svg-logos/svg_logos'
 
 export default function Home() {
   interface UserData {
@@ -113,8 +114,13 @@ export default function Home() {
               <span className='text-base'>{state.editData.patient}</span>
             </div>
           </div>
-          <div className='flex w-1/2 h-full'>
-            <Image src={state.editData.clientImg} alt="Client Image" width={100} height={100} className='rounded-full' />
+          <div className='flex w-1/2 h-full items-center'>
+            {state.editData.clientImg &&
+              <Image src={state.editData.clientImg} alt="Client Image" width={100} height={100} className='rounded-full' />
+            }
+            {!state.editData.clientImg &&
+              <ProfilePicture width={"120"} height={"120"} fill={"black"} />
+            }
             <div className='flex-1 flex flex-col justify-center pl-2'>
               <span className='text-xl font-bold'>Client</span>
               <span className='text-base'>{state.editData.client}</span>
@@ -189,9 +195,9 @@ export default function Home() {
             <div className='flex-1 flex flex-col justify-center'>
               <span className='text-xl font-bold'>Client</span>
               {isUserDataLoaded &&
-                <select name="selectedClient" value={newAppointmentData.selectedClient} onChange={(e) => handleSelection(e)} className='h-8 mt-2 pl-2 bg-white border-2 border-gray-300 rounded-full overflow-ellipsis'>
+                <select name="selectedClient" value={newAppointmentData.selectedClient} onChange={(e) => handleSelection(e)} className='w-full h-8 mt-2 pl-2 bg-white border-2 border-gray-300 rounded-full overflow-ellipsis'>
                   <option value="" disabled>Select a client first</option>
-                  {Object.keys(userData).map((key) => (
+                  {Object.keys(userData).filter(key => !userData[key].email.includes("vet")).map((key) => (
                     <option key={key} value={key}>{userData[key].email}</option>
                   ))}
                 </select>
