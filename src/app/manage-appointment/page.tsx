@@ -230,7 +230,11 @@ export default function ManageAppointment() {
         })
     }, [])
 
-    useEffect(() => {console.log(patientData)}, [isPatientDataLoaded])
+    useEffect(() => {
+        if (isPatientDataLoaded) {
+
+        }
+    }, [isPatientDataLoaded])
 
     return (
         <main className='flex w-screen h-max'>
@@ -241,7 +245,7 @@ export default function ManageAppointment() {
                     <span className="text-3xl font-light">{moment(appointmentDetails.startDate).format("MMMM Do YYYY")}</span>
                     <span className="text-3xl font-light">{moment(appointmentDetails.startDate).format("h:mm A")} - {moment(appointmentDetails.endDate).format("h:mm A")}</span>
                 </div>
-                <div className="flex w-11/12 h-1/3 py-4 rounded-3xl border-2 border-gray-300">
+                <div className="flex w-11/12 h-fit py-4 rounded-3xl border-2 border-gray-300">
                     <div className="flex flex-col w-1/2 h-full px-5">
                         <span className="text-5xl font-light text-gray-400">Patient</span>
                         <div className="flex-1 flex flex-row pt-3 items-center">
@@ -249,7 +253,7 @@ export default function ManageAppointment() {
                                 <Image src={appointmentDetails.patientImg} alt="Patient Image" width={130} height={130} className="rounded-full" />                            
                             }
                             {!appointmentDetails?.patientImg &&
-                                <ProfilePicture width={"200"} height={"200"} fill={"black"} />
+                                <ProfilePicture width={"160"} height={"160"} fill={"black"} />
                             }
                             <span className="ml-3 text-4xl font-medium">{appointmentDetails.patient}</span>
                         </div>
@@ -257,61 +261,57 @@ export default function ManageAppointment() {
                     <div className="flex flex-col w-1/2 h-full px-5">
                         <span className="text-5xl font-light text-gray-400">Client</span>
                         <div className="flex-1 flex flex-row pt-3 items-center">
-                            <Image src={appointmentDetails.clientImg} alt="Patient Image" width={130} height={130} className="rounded-full" />
+                            {appointmentDetails?.clientImg &&
+                                <Image src={appointmentDetails.clientImg} alt="Client Image" width={130} height={130} className="rounded-full" />
+                            }
+                            {!appointmentDetails?.clientImg &&
+                                <ProfilePicture width={"160"} height={"160"} fill={"black"} />
+                            }                            
                             <span className="ml-3 text-4xl font-medium">{appointmentDetails.client}</span>
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-row justify-between items-center mt-2 w-11/12 h-1/3">
-                    <div className="py-3 w-2/5 h-full max-h-[240px] overflow-scroll rounded-3xl border-2 border-gray-300">
+                <div className="flex flex-row justify-between items-center mt-4 w-11/12 h-fit gap-x-5">
+                    <div className="py-3 w-4/12 h-full rounded-3xl border-2 border-gray-300">
                         <span className="ml-5 text-3xl font-semibold">General Info</span>
-                        <div className="flex flex-row w-full h-5/6">
-                            <ul className="flex flex-col px-5 w-1/3 h-full justify-evenly">
+                        <div className="flex flex-row py-3 w-full h-5/6">
+                            <ul className="flex flex-col px-5 w-1/3 h-full gap-3 justify-evenly">
                                 {patientData &&
-                                    Object.keys(patientData).map((field) => {
+                                    Object.keys(patientData).filter(field => field !== "conditions" && field !== "name").map((field) => {
                                         const formattedField = field.charAt(0).toUpperCase() + field.slice(1)
-
-                                        if (field === "conditions") {
-
-                                        } else {
-                                            return (
-                                                <li key={field}>{formattedField}</li>
-                                            )
-                                        }
+                                        return (
+                                            <li key={field}>{formattedField}</li>
+                                        )
                                     })
                                 }
                             </ul>
-                            <ul className="flex flex-col w-2/3 h-full justify-evenly font-semibold">
+                            <ul className="flex flex-col w-2/3 h-full gap-3 justify-evenly font-semibold">
                                 {patientData &&
-                                        Object.keys(patientData).map((field) => {
-                                            if (field === "conditions") {
-
-                                            } else {
-                                                return (
-                                                    <li key={field}>{patientData[field]}</li>
-                                                )
-                                            }
+                                        Object.keys(patientData).filter(field => field !== "conditions" && field !== "name").map((field) => {
+                                            return (
+                                                <li key={field}>{patientData[field]}</li>
+                                            )
                                         })
                                 }
                             </ul>
                         </div>
-                        <div className="flex-1 px-5">
-                            <span>Conditions</span>
-                            <div className="mt-3 w-full p-3 rounded-3xl border-2 border-gray-300">
-                                {patientData &&
-                                    <p className="max-h-[100px] overflow-scroll font-semibold">{patientData.conditions}</p>
-                                }
-                            </div>
-                        </div>
                     </div>
-                    <div className="flex flex-col py-3 w-7/12 h-full max-h-[240px] rounded-3xl border-2 border-gray-300">
-                        <span className="ml-5 text-3xl font-semibold">Visit Reason</span>
-                        <p className="mt-2 w-11/12 h-5/6 max-h-[161px] self-center text-base overflow-scroll">
-                            {appointmentDetails.description}
+                    <div className="flex flex-col py-3 w-4/12 h-full rounded-3xl border-2 border-gray-300">
+                        <span className="ml-3 text-3xl font-semibold">Conditions</span>
+                        <p className="mt-2 w-11/12 h-5/6 max-h-[161px] self-center text-base overflow-y-scroll">
+                            {patientData &&
+                                patientData?.conditions
+                            }
+                        </p>
+                    </div>
+                    <div className="flex flex-col py-3 w-4/12 h-full rounded-3xl border-2 border-gray-300">
+                        <span className="ml-3 text-3xl font-semibold">Visit Reason</span>
+                        <p className="mt-2 w-11/12 h-5/6 max-h-[161px] self-center text-base overflow-y-scroll">
+                            {appointmentDetails?.description}
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-col py-5 mt-2 w-11/12 rounded-3xl border-2 border-gray-300">
+                <div className="flex flex-col mt-4 py-5 w-11/12 rounded-3xl border-2 border-gray-300">
                     <span className="ml-5 text-3xl font-semibold">Diagnosis</span>
                     <div className="flex flex-col w-full h-56 mt-2">
                         <span className="ml-5 text-2xl font-semibold text-gray-400">Subjective</span>
@@ -335,7 +335,7 @@ export default function ManageAppointment() {
                         <textarea name="assessment" value={diagnosisData.assessment} onChange={(e) => handleTextAreaChange(e)} placeholder="Enter factual assessments" className="w-[96%] h-5/6 mt-3 p-4 self-center rounded-3xl border-2 border-gray-300" />
                     </div>
                 </div>
-                <div className="flex w-11/12 h-48 items-center">
+                <div className="flex w-11/12 h-fit py-5 items-center">
                     <button
                         onClick={handleCompletion}
                         className='flex ml-auto w-96 h-16 justify-center items-center text-base rounded-full bg-petgreen active:bg-activepetgreen shadow-xl text-white font-semibold'

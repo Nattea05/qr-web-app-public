@@ -8,7 +8,7 @@ import { ref as ref_db, onValue, set, remove } from 'firebase/database'
 import { ref as ref_storage, getDownloadURL, uploadBytes, listAll, getMetadata, deleteObject } from 'firebase/storage'
 import { db, auth, storage } from '../../../../firebaseConfig'
 import Image from 'next/image'
-import { ProfilePicture, Email, Location, PhoneNumber, Whiteboard, Edit, Staff, Close, AddPhoto } from '@/app/images/svg-logos/svg_logos'
+import { ProfilePicture, Email, Location, PhoneNumber, Whiteboard, Edit, Staff, Close, Images, AddPhoto } from '@/app/images/svg-logos/svg_logos'
 import { Modal } from '@mui/base/Modal'
 import clsx from 'clsx'
 import { v4 as uuid } from "uuid";
@@ -27,13 +27,19 @@ export default function Profile() {
     const [clinicImage, setClinicImage] = useState<any>()
     const [staffImageFile, setStaffImageFile] = useState<HTMLElement>()
     const [clinicImageFile, setClinicImageFile] = useState<HTMLElement>()
+    const [interiorImageFile, setInteriorImageFile] = useState<HTMLElement>()
+    const [isNewInteriorImageUploaded, setIsNewInteriorImageUploaded] = useState(false)
     const [isImageUploaded, setIsImageUploaded] = useState(false)
     const [isNewClinicImageUploaded, setIsNewClinicImageUploaded] = useState(false)
+    const [interiorImages, setInteriorImages] = useState<any[]>([])
+    const [isInteriorImageLoaded, setIsInteriorImageLoaded] = useState(false)
     const [staffImage, setStaffImage] = useState<Blob>()
     const [newClinicImage, setNewClinicImage] = useState<Blob>()
+    const [newInteriorImage, setNewInteriorImage] = useState<Blob>()
     const [open, setOpen] = useState(false)
     const [editOpen, setEditOpen] = useState(false)
     const [removeOpen, setRemoveOpen] = useState(false)
+    const [interiorOpen, setInteriorOpen] = useState(false)
     const [removeID, setRemoveID] = useState('')
     const [staffData, setStaffData] = useState({
         name: '',
@@ -63,6 +69,7 @@ export default function Profile() {
                     setOpen(false)
                     setRemoveOpen(false)
                     setEditOpen(false)
+                    setInteriorOpen(false)
                 }}
                 className={clsx({ 'MuiBackdrop-open': open }, "-z-10 fixed inset-0 bg-black/50")}
                 ref={ref}
@@ -70,29 +77,23 @@ export default function Profile() {
         )
     })
 
-    staffImageFile?.addEventListener('change', (e) => {
+    const addFileChangeListener = (fileInput: HTMLElement | undefined) => {
+      fileInput?.addEventListener('change', (e) => {
         if (e.target instanceof HTMLInputElement) {
-            const imageElementID = e.target.id.replace(/-file$/, '')
-            const files = e.target.files
-            if (files?.length == 0) {
-              // No file selected, ignore 
-              return;
-            }
-            handleDroppedFiles(files, imageElementID);
+          const imageElementID = e.target.id.replace(/-file$/, '')
+          const files = e.target.files
+          if (files?.length === 0) {
+            // No file selected, ignore
+            return;
+          }
+          handleDroppedFiles(files, imageElementID);
         }
-    });
+      });
+    };
 
-    clinicImageFile?.addEventListener('change', (e) => {
-        if (e.target instanceof HTMLInputElement) {
-            const imageElementID = e.target.id.replace(/-file$/, '')
-            const files = e.target.files
-            if (files?.length == 0) {
-              // No file selected, ignore 
-              return;
-            }
-            handleDroppedFiles(files, imageElementID);
-        }
-    });
+    addFileChangeListener(staffImageFile)
+    addFileChangeListener(clinicImageFile)
+    addFileChangeListener(interiorImageFile)
 
     function handleDroppedFiles(files: any, imageElementID: string) {
       if (files.length > 0) {
@@ -100,8 +101,15 @@ export default function Profile() {
           console.log(`Dropped file: ${file.name}`)
           
           if (file.type.startsWith('image/')) {
-            setIsImageUploaded(true)
-            setIsNewClinicImageUploaded(true)
+            if (imageElementID.includes("staff")) {
+                setIsImageUploaded(true)
+            }
+            else if (imageElementID.includes("clinic")) {
+                setIsNewClinicImageUploaded(true)
+            }
+            else if (imageElementID.includes("interior")) {
+                setIsNewInteriorImageUploaded(true)
+            }
             const reader = new FileReader()
             reader.onload = async (e) => {
               if (e.target?.result) {
@@ -116,6 +124,9 @@ export default function Profile() {
                 }
                 else if (imageElementID.includes("clinic")) {
                     setNewClinicImage(blob)
+                }
+                else if (imageElementID.includes("interior")) {
+                    setNewInteriorImage(blob)
                 }
               }
             };
@@ -206,6 +217,32 @@ export default function Profile() {
         setRemoveOpen(false)
     }
 
+    function handleAddInteriorImage() {
+        if (!newInteriorImage) {
+            alert("Please provide a picture before submitting.")
+        } else {
+            const vetIndex = userData.vetIndex + 1
+            const interiorRef = ref_storage(storage, "vet-interiors/place" + vetIndex.toString() + "/interior" + (interiorImages.length + 1).toString())
+            uploadBytes(interiorRef, newInteriorImage)
+                .then((snapshot) => {
+                    // Successful upload
+                    location.reload()
+                })
+                .catch((error) => {
+                    console.error("Error uploading interior image: " + error)
+                })            
+        }
+    }
+
+    function handleRemoveInteriorImage(imageName: string) {
+        const vetIndex = userData.vetIndex + 1
+        const removeInteriorRef = ref_storage(storage, "vet-interiors/place" + vetIndex.toString() + "/" + imageName)
+        deleteObject(removeInteriorRef)
+        setTimeout(() => {
+            location.reload()
+        }, 500);
+    }
+
     function handleSignOut() {
         signOut(auth).then(() => {
             router.replace('/login')
@@ -249,6 +286,17 @@ export default function Profile() {
             setNewClinicImage(undefined)
         }
     }, [editOpen])
+
+    useEffect(() => {
+        if (interiorOpen) {
+            setTimeout(() => {
+                setInteriorImageFile(document.getElementById('interior-image-file') ?? undefined)
+            }, 500);
+        } else {
+            setIsNewInteriorImageUploaded(false)
+            setNewInteriorImage(undefined)
+        }
+    }, [interiorOpen])
 
     useEffect(() => {
         const userRef = ref_db(db, "users/" + uid)
@@ -318,6 +366,31 @@ export default function Profile() {
                     console.error("Error received: ", error)
                 })
 
+            const interiorRef = ref_storage(storage, "vet-interiors/place" + vetIndex.toString())
+            listAll(interiorRef)
+                .then((res) => {
+                    const promises = res.items.map(async (itemRef) => {
+                        const metadataPromise = getMetadata(itemRef);
+                        const downloadURLPromise = getDownloadURL(itemRef);
+                        try {
+                            const [metadata, url] = await Promise.all([metadataPromise, downloadURLPromise]);
+                            setInteriorImages(interiorImages => [...interiorImages, {imageName: metadata.name, url: url}]);
+                        } catch (error) {
+                            console.error("Error received: ", error);
+                        }
+                    });
+                    Promise.all(promises)
+                        .then(() => {
+                            setIsInteriorImageLoaded(true)
+                        })
+                        .catch((error) => {
+                            console.error("Error received: ", error)
+                        })
+                })
+                .catch((error) => {
+                    console.error("Error received: ", error)
+                })            
+
             return (() => {
                 clinicListener()
                 staffListener()
@@ -326,7 +399,7 @@ export default function Profile() {
     }, [isUserDataLoaded])
 
     useEffect(() => {
-        if (isClinicDataLoaded && isStaffListLoaded && isStaffImageListLoaded) {
+        if (isClinicDataLoaded && isStaffListLoaded && isStaffImageListLoaded && isInteriorImageLoaded) {
             setNewClinicData((prevState) => ({
                 ...prevState,
                 name: clinicData.name,
@@ -338,7 +411,7 @@ export default function Profile() {
             }))
             setNewClinicImage(clinicImage)
         }
-    }, [isClinicDataLoaded, isStaffListLoaded, isStaffImageListLoaded])
+    }, [isClinicDataLoaded, isStaffListLoaded, isStaffImageListLoaded, isInteriorImageLoaded])
 
     return (
         <main className='flex w-screen h-max'>
@@ -346,13 +419,13 @@ export default function Profile() {
             <div className="flex-1 flex flex-col p-5 justify-center items-center ml-72 overflow-y-scroll">
                 <div className='flex flex-row w-full h-fit rounded-3xl border-2 border-gray-300'>
                     {clinicImage &&
-                        <Image src={clinicImage} alt='Clinic Image' width={0} height={0} sizes='100vw' objectFit={"contain"} className='w-1/3 h-full rounded-3xl' />
+                        <Image src={clinicImage} alt='Clinic Image' width={0} height={0} sizes='100vw' className='object-cover w-1/3 h-full rounded-3xl' />
                     }
                     <div className='flex-1 flex flex-row p-3 gap-x-5'>
                         {clinicData &&
                             <>
                                 <div className='flex flex-col w-1/2 gap-y-2 justify-center'>
-                                    <span className='font-bold text-3xl'>{clinicData.name}</span>
+                                    <span className='ml-2 font-bold text-3xl'>{clinicData.name}</span>
                                     <div className='flex flex-row w-full p-2 gap-x-5'>
                                         <Location />
                                         <span className='font-semibold text-sm text-justify text-gray-400'>{clinicData.address}</span>
@@ -421,6 +494,27 @@ export default function Profile() {
                                 }
                         </tbody>
                     </table>
+                </div>
+                <div className='flex flex-col w-full h-fit p-3'>
+                    <div className='flex flex-row w-full p-2 gap-x-3 items-center'>
+                        <Images width='48' height='48' fill='black' />
+                        <span className='font-semibold text-3xl'>Interior Images</span>
+                        <button onClick={() => setInteriorOpen(true)} className='flex w-10 h-10 justify-center items-center font-light text-white rounded-full text-5xl bg-petgreen active:bg-activepetgreen'>+</button>
+                    </div>
+                    <div className='flex flex-row w-full max-w-[1167px] p-5 pr-12 overflow-x-scroll rounded-3xl border-2 border-gray-300'>
+                        {isInteriorImageLoaded && interiorImages &&
+                            interiorImages.map((image, index) => {
+                                return (
+                                    <div key={index} className='flex flex-col p-5 border-r-2 border-gray-300'>
+                                        <button className='flex flex-row mb-3 justify-end' onClick={() => handleRemoveInteriorImage(image.imageName)}>
+                                            <Close width='30' height='30' fill='#cbcbcb' />
+                                        </button>
+                                        <Image src={image.url} alt={`Interior image ${index}`} width={150} height={150} className='w-[150px] h-[150px] min-w-[150px] min-h-[150px] object-cover rounded-3xl' />
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
                 </div>
                 <div className='flex mt-3 w-full justify-center items-center'>
                     <button
@@ -496,13 +590,15 @@ export default function Profile() {
                     <div className='flex w-full justify-between items-center'>
                         <span className='font-semibold text-3xl'>Confirm Staff Remove</span>
                     </div>
-                    <div className='flex-1 flex flex-col mt-5 justify-center items-center'>
-                        <span className='font-medium text-center text-xl'>Are you sure you want to remove {staffList[removeID]?.name}?</span>
-                        <div className='flex flex-row w-full p-5 justify-center items-center gap-x-5'>
-                            <button onClick={() => handleConfirmStaffRemove()} className='font-semibold text-lg w-36 p-3 rounded-2xl bg-petgreen active:bg-activepetgreen'>Confirm</button>
-                            <button onClick={() => setRemoveOpen(false)} className='font-semibold text-lg w-36 p-3 rounded-2xl bg-cancel active:bg-activecancel'>Cancel</button>
+                    {typeof staffList === "object" && staffList && staffImageList &&
+                        <div className='flex-1 flex flex-col mt-5 justify-center items-center'>
+                            <span className='font-medium text-center text-xl'>Are you sure you want to remove {staffList[removeID]?.name}?</span>
+                            <div className='flex flex-row w-full p-5 justify-center items-center gap-x-5'>
+                                <button onClick={() => handleConfirmStaffRemove()} className='font-semibold text-lg w-36 p-3 rounded-2xl bg-petgreen active:bg-activepetgreen'>Confirm</button>
+                                <button onClick={() => setRemoveOpen(false)} className='font-semibold text-lg w-36 p-3 rounded-2xl bg-cancel active:bg-activecancel'>Cancel</button>
+                            </div>
                         </div>
-                    </div>
+                    }
                 </div>
             </Modal>
             <Modal
@@ -555,6 +651,35 @@ export default function Profile() {
                     <button onClick={() => handleEditClinicProfile()} className='flex w-1/2 p-3 justify-center items-center rounded-2xl bg-petgreen active:bg-activepetgreen font-semibold text-xl'>
                         Confirm Edit
                     </button>
+                </div>
+            </Modal>
+            <Modal
+                open={interiorOpen}
+                onClose={() => setInteriorOpen(false)}
+                slots={{ backdrop: Backdrop }}
+                className='z-50 fixed inset-0 flex justify-center items-center'
+            >
+                <div className='flex flex-col w-5/12 h-2/3 p-5 justify-center items-center bg-white rounded-2xl'>
+                    <div className='flex w-full justify-between items-center'>
+                        <span className='font-semibold text-3xl'>Add Interior Image</span>
+                        <button onClick={() => setInteriorOpen(false)}>
+                            <Close width='42' height='42' fill='black' />
+                        </button>
+                    </div>
+                    <div className='flex-1 flex flex-col w-full py-5 items-center gap-y-5'>
+                        {isNewInteriorImageUploaded &&
+                            <Image src={""} id='interior-image' alt='Interior Image' width={550} height={247} className='w-[550px] h-[247px] max-h-[247px] object-cover rounded-3xl' />
+                        }
+                        {!isNewInteriorImageUploaded && !newInteriorImage &&
+                            <div className='flex w-11/12 h-[70%] justify-center items-center rounded-3xl border-4 border-dashed border-gray-300'>
+                                <AddPhoto width='80' height='80' fill='#cbcbcb' />
+                            </div>
+                        }
+                        <input id='interior-image-file' type='file' accept='image/*' className='inline-flex ml-20 pb-2' />
+                        <button onClick={() => handleAddInteriorImage()} className='flex w-1/2 p-3 justify-center items-center rounded-2xl bg-petgreen active:bg-activepetgreen font-semibold text-xl'>
+                            Add Interior Image
+                        </button> 
+                    </div>                   
                 </div>
             </Modal>
         </main>

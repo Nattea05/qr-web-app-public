@@ -193,7 +193,7 @@ export default function EmrDetails() {
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-col py-3 mt-4 w-11/12 rounded-3xl border-2 border-gray-300">
+                <div className="flex flex-col py-5 mt-4 w-11/12 rounded-3xl border-2 border-gray-300">
                     <span className="ml-5 text-3xl font-semibold">Diagnosis</span>
                     <div className="flex flex-col w-full h-56 mt-2">
                         <span className="ml-5 text-2xl font-semibold text-gray-400">Subjective</span>
@@ -205,7 +205,7 @@ export default function EmrDetails() {
                         <div className="flex flex-row w-full h-fit items-center">
                             <span className="ml-5 text-2xl font-semibold text-gray-400">Objective</span>
                         </div>
-                        <div className="flex flex-row mt-5 w-full max-w-[1095px] h-full overflow-y-scroll self-center">
+                        <div className="flex flex-row mt-5 w-full max-w-[1095px] h-full overflow-scroll self-center">
                                 {!emrDetails[emrID].objective &&
                                     <span>No objective information was written.</span>
                                 }

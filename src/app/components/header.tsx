@@ -99,7 +99,7 @@ export default function Header() {
                 }
             </nav>
             <hr className="w-5/6 border-1 rounded border-gray-300 self-center"></hr>
-            <Link href='/nav/profile' className="flex w-full h-1/6 justify-center items-center" onMouseEnter={() => setIsProfileHover(true)} onMouseLeave={() => setIsProfileHover(false)}>
+            <Link href='/nav/profile' className="flex w-full h-1/6 p-3 justify-center items-center" onMouseEnter={() => setIsProfileHover(true)} onMouseLeave={() => setIsProfileHover(false)}>
                 <div className={`flex justify-center w-10/12 p-3 rounded-3xl ${isProfileActive ? "bg-petgreen" : ""}`}>
                     <div className="flex-1 flex flex-col w-full justify-center items-center gap-y-2">
                         {clinicData &&

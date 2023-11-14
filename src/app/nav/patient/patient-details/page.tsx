@@ -60,7 +60,12 @@ export default function PatientDetails() {
             <div className='flex flex-col w-1/2 h-full p-5'>
               <span className='font-light text-5xl'>Patient</span>
               <div className='flex-1 flex flex-row w-full p-3 items-center gap-x-5'>
-                <Image src={patientDetails[ownID].image} alt='Patient Image' width={150} height={150} className='w-[150px] h-[150px] object-contain rounded-full' />
+                {patientDetails[ownID]?.image &&
+                  <Image src={patientDetails[ownID].image} alt='Patient Image' width={150} height={150} className='w-[150px] h-[150px] object-contain rounded-full' />
+                }
+                {!patientDetails[ownID]?.image &&
+                  <ProfilePicture width='170' height='170' fill='black' />
+                }
                 <span className='font-semibold text-5xl'>{patientDetails[ownID][petID].name}</span>
               </div>
             </div>
@@ -68,7 +73,7 @@ export default function PatientDetails() {
               <span className='font-light text-5xl'>Owner</span>
               <div className='flex-1 flex flex-row w-full p-3 items-center gap-x-5'>
                 {isClientImageLoaded && clientImage &&
-                  <Image src={clientDetails.image} alt='Client Image' width={150} height={150} className='w-[150px] h-[150px] object-contain rounded-full' />
+                  <Image src={clientImage} alt='Client Image' width={150} height={150} className='w-[150px] h-[150px] object-contain rounded-full' />
                 }
                 {isClientImageLoaded && !clientImage &&
                   <ProfilePicture width='170' height='170' fill='black' />
@@ -78,32 +83,24 @@ export default function PatientDetails() {
             </div>
           </div>
           <div className='flex flex-row w-full justify-center items-center gap-x-3'>
-            <div className='flex flex-col w-1/2 h-full p-5 rounded-3xl border-2 border-gray-300'>
+            <div className='flex flex-col w-1/2 min-h-[334px] p-5 pb-8 justify-evenly rounded-3xl border-2 border-gray-300'>
               {isClientLoaded && isClientImageLoaded && patientDetails &&
                 Object.keys(patientDetails).map((ownID) => {
                   const pet = patientDetails[ownID]
-                  return Object.keys(pet).map((petID) => {
-                    if (petID === "image") {
-                      // Ignore if petID is image
-                    } else {
-                      const fields = patientDetails[ownID][petID]
-                      return Object.keys(fields).map((field) => {
-                        if (field === "conditions") {
-                          // Ignore if field is conditions
-                        } else {
-                          return (
-                            <div key={field} className='flex flex-row w-full p-3 justify-between border-b-2 border-gray-300'>
-                              <span className='font-semibold text-2xl text-gray-400'>
-                                {field.charAt(0).toUpperCase() + field.slice(1)}
-                              </span>
-                              <span className='font-semibold text-2xl text-right'>
-                                {fields[field]}
-                              </span>
-                            </div>
-                          )
-                        }
-                      })
-                    }
+                  return Object.keys(pet).filter(key => key !== "image").map((petID) => {
+                    const fields = patientDetails[ownID][petID]
+                    return Object.keys(fields).filter(field => field !== "conditions" && field !== "name").map((field) => {
+                      return (
+                        <div key={field} className='flex flex-row w-full p-3 justify-between border-b-2 border-gray-300'>
+                          <span className='font-semibold text-2xl text-gray-400'>
+                            {field.charAt(0).toUpperCase() + field.slice(1)}
+                          </span>
+                          <span className='font-semibold text-2xl text-right'>
+                            {fields[field]}
+                          </span>
+                        </div>
+                      )
+                    })
                   })
                 })
               }
