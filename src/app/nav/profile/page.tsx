@@ -54,12 +54,13 @@ export default function Profile() {
         role: '',
         vetIndex: '',
     })
-    const [newClinicData, setNewClinicData] = useState({
+    const [newClinicData, setNewClinicData] = useState<Record<string, any>>({
         name: '',
         index: -1,
         location: '',
         address: '',
         phoneNumber: '',
+        email: '',
         whiteboard: 'Whiteboard default message',
         openTimeHour: '',
         openTimeMinute: '',
@@ -189,22 +190,28 @@ export default function Profile() {
         const hasMissingDetails = Object.values(newClinicData).some(
             (value) => value === undefined || value === null || value.toString().trim() === ""
         )
-        if (hasMissingDetails || !newClinicImage) {
-            alert("Please fill in all the required fields and provide a picture.")
+        if (hasMissingDetails) {
+            alert("Please fill in all the required fields.")
         } else {
             const openTime = `${newClinicData.openTimeHour}:${newClinicData.openTimeMinute}`
             const closeTime = `${newClinicData.closeTimeHour}:${newClinicData.closeTimeMinute}`
-            const updatedNewClinicData = {
-                ...newClinicData,
+            const updatedNewClinicData = Object.keys(newClinicData).reduce((result: any, key: any) => {
+                if (!(key.toLowerCase().includes("open") || key.toLowerCase().includes("close"))) {
+                    result[key] = newClinicData[key]
+                }
+                return result
+            }, {})
+            const finalNewClinicData = {
+                ...updatedNewClinicData,
                 openTime: openTime,
                 closeTime: closeTime
             }
 
             const vetIndex = userData.vetIndex + 1
             const clinicRef = ref_db(db, "places/place" + vetIndex.toString())
-            set(clinicRef, updatedNewClinicData)
+            set(clinicRef, finalNewClinicData)
 
-            if (isNewClinicImageUploaded) {
+            if (isNewClinicImageUploaded && newClinicImage) {
                 const clinicImageRef = ref_storage(storage, "veterinary-locations/vet" + vetIndex.toString() + ".png")
                 setTimeout(() => {
                     uploadBytes(clinicImageRef, newClinicImage)
@@ -435,6 +442,7 @@ export default function Profile() {
                 index: clinicData.index,
                 location: clinicData.location,
                 address: clinicData.address,
+                email: clinicData.email,
                 phoneNumber: clinicData.phoneNumber,
                 whiteboard: clinicData.whiteboard,
                 openTimeHour: clinicData.openTime.split(":")[0],
@@ -689,7 +697,7 @@ export default function Profile() {
                         <div className='flex flex-col w-1/2 h-full pl-3 gap-y-3 justify-evenly items-start'>
                             <div className='inline-flex flex-col w-11/12 h-fit'>
                                 <span className='ml-2'>Whiteboard</span>
-                                <textarea value={newClinicData.whiteboard} onChange={(e) => handleClinicInputChange(e, 'whiteboard')} placeholder='Write a message to your staff' name="whiteboard" id="whiteboard" className='p-3 rounded-2xl border-2 border-gray-300'></textarea>
+                                <textarea value={newClinicData.whiteboard} onChange={(e) => handleClinicInputChange(e, 'whiteboard')} placeholder='Write a message to your staff' name="whiteboard" id="whiteboard" className='max-h-[52px] p-3 rounded-2xl border-2 border-gray-300'></textarea>
                             </div>
                             <div className='inline-flex flex-col w-11/12 h-fit'>
                                 <span className='ml-2'>Opening Time</span>
@@ -697,7 +705,6 @@ export default function Profile() {
                                     <select value={newClinicData.openTimeHour} onChange={(e) => handleClinicInputChange(e, 'openTimeHour')} name="openTime" id="openTime" className='p-3 rounded-2xl bg-white border-2 border-gray-300'>
                                         {
                                             Array.from(hourSet).map((slot) => {
-                                                console.log(slot)
                                                 const hourPart = slot.split(":")[0]
                                                 return (
                                                     <option key={hourPart} value={hourPart} className='font-sans'>{hourPart}</option>
