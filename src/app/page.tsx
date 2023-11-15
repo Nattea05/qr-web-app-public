@@ -54,8 +54,10 @@ export default function Home() {
   const [isSlotsLoaded, setIsSlotsLoaded] = useState(false)
   const [userData, setUserData] = useState<{ [key: string]: UserData }>({})
   const [petData, setPetData] = useState<{ [ownID: string]: PetData }>({})
+  const [clinicData, setClinicData] = useState<Record<string, any>>({})
   const [isUserDataLoaded, setIsUserDataLoaded] = useState(false)
   const [isPetDataLoaded, setIsPetDataLoaded] = useState(false)
+  const [isClinicDataLoaded, setIsClinicDataLoaded] = useState(false)
   const [newAppointmentData, setNewAppointmentData] = useState<newData>({
     selectedClient: '',
     selectedPet: '',
@@ -220,7 +222,7 @@ export default function Home() {
               <span className='text-xl font-bold'>Time</span>
               {isSlotsLoaded &&
                 <select name="selectedTime" value={newAppointmentData.selectedTime} onChange={(e) => handleSelection(e)} className='h-8 mt-2 pl-2 bg-white border-2 border-gray-300 rounded-full overflow-ellipsis'>
-                  <option value="" disabled>Select a date</option>
+                  <option value="" disabled>Select a time</option>
                   {Array.from(slots).map((slot) => (
                     <option key={slot} value={slot}>{slot}</option>
                   ))}
@@ -315,7 +317,9 @@ export default function Home() {
 
   useEffect(() => {
     if (isSlotsFetched) {
-      setSlots(createTimeSlots('08:00', '22:00', bookedSlotsSet, emptyState.editData.startDate))
+      const openTime = clinicData?.openTime
+      const closeTime = clinicData?.closeTime
+      setSlots(createTimeSlots(openTime, closeTime, bookedSlotsSet, emptyState.editData.startDate, "scheduler"))
       setIsSlotsFetched(false)
       setIsSlotsLoaded(true)
     }
@@ -353,7 +357,21 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-  }, [isUserDataLoaded, isPetDataLoaded])
+    if (vetIndex > 0) {
+      const clinicRef = ref_db(db, "places/place" + (vetIndex + 1).toString())
+      const clinicListener = onValue(clinicRef, (snapshot) => {
+        const data = snapshot.val()
+        setClinicData(data)
+        setIsClinicDataLoaded(true)
+      })
+
+      return (() => {
+        clinicListener()
+      })
+    }
+  }, [vetIndex])
+
+  useEffect(() => {}, [isUserDataLoaded, isPetDataLoaded, isClinicDataLoaded])
 
   return (
     <main className='flex w-screen h-screen'>

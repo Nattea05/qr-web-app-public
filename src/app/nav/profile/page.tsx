@@ -8,10 +8,11 @@ import { ref as ref_db, onValue, set, remove } from 'firebase/database'
 import { ref as ref_storage, getDownloadURL, uploadBytes, listAll, getMetadata, deleteObject } from 'firebase/storage'
 import { db, auth, storage } from '../../../../firebaseConfig'
 import Image from 'next/image'
-import { ProfilePicture, Email, Location, PhoneNumber, Whiteboard, Edit, Staff, Close, Images, AddPhoto } from '@/app/images/svg-logos/svg_logos'
+import { ProfilePicture, Email, Location, PhoneNumber, Whiteboard, Edit, Staff, Close, Images, AddPhoto, Time } from '@/app/images/svg-logos/svg_logos'
 import { Modal } from '@mui/base/Modal'
 import clsx from 'clsx'
 import { v4 as uuid } from "uuid";
+import createTimeSlots from '@/app/fetchTimeSlots'
 
 export default function Profile() {
     interface StaffData {
@@ -20,6 +21,11 @@ export default function Profile() {
 
     const [uid, setUid] = useState('')
     const router = useRouter()
+    const [timeSlots, setTimeSlots] = useState<string[]>([])
+    const [timeSlotsSet, setTimeSlotsSet] = useState(new Set<any>(timeSlots))
+    const [isTimeSlotsLoaded, setIsTimeSlotsLoaded] = useState(false)
+    const [hourSet, setHourSet] = useState(new Set<any>([]))
+    const minuteSlots = ["00", "30"]
     const [userData, setUserData] = useState<any>();
     const [isUserDataLoaded, setIsUserDataLoaded] = useState(false)
     const [clinicData, setClinicData] = useState<any>()
@@ -55,6 +61,10 @@ export default function Profile() {
         address: '',
         phoneNumber: '',
         whiteboard: 'Whiteboard default message',
+        openTimeHour: '',
+        openTimeMinute: '',
+        closeTimeHour: '',
+        closeTimeMinute: ''
     })
     const [staffList, setStaffList] = useState<{ [staffID: string]: StaffData }>({})
     const [staffImageList, setStaffImageList] = useState<{ imageName: string; url: string; }[]>([])
@@ -182,9 +192,17 @@ export default function Profile() {
         if (hasMissingDetails || !newClinicImage) {
             alert("Please fill in all the required fields and provide a picture.")
         } else {
+            const openTime = `${newClinicData.openTimeHour}:${newClinicData.openTimeMinute}`
+            const closeTime = `${newClinicData.closeTimeHour}:${newClinicData.closeTimeMinute}`
+            const updatedNewClinicData = {
+                ...newClinicData,
+                openTime: openTime,
+                closeTime: closeTime
+            }
+
             const vetIndex = userData.vetIndex + 1
             const clinicRef = ref_db(db, "places/place" + vetIndex.toString())
-            set(clinicRef, newClinicData)
+            set(clinicRef, updatedNewClinicData)
 
             if (isNewClinicImageUploaded) {
                 const clinicImageRef = ref_storage(storage, "veterinary-locations/vet" + vetIndex.toString() + ".png")
@@ -222,7 +240,7 @@ export default function Profile() {
             alert("Please provide a picture before submitting.")
         } else {
             const vetIndex = userData.vetIndex + 1
-            const interiorRef = ref_storage(storage, "vet-interiors/place" + vetIndex.toString() + "/interior" + (interiorImages.length + 1).toString())
+            const interiorRef = ref_storage(storage, "vet-interiors/place" + vetIndex.toString() + "/interior" + Math.floor(Math.random() * (1000 - 1 + 1) + 1).toString())
             uploadBytes(interiorRef, newInteriorImage)
                 .then((snapshot) => {
                     // Successful upload
@@ -235,12 +253,16 @@ export default function Profile() {
     }
 
     function handleRemoveInteriorImage(imageName: string) {
-        const vetIndex = userData.vetIndex + 1
-        const removeInteriorRef = ref_storage(storage, "vet-interiors/place" + vetIndex.toString() + "/" + imageName)
-        deleteObject(removeInteriorRef)
-        setTimeout(() => {
-            location.reload()
-        }, 500);
+        if (interiorImages.length === 1) {
+            alert("It is required for clinics to have at least one interior image.")
+        } else {
+            const vetIndex = userData.vetIndex + 1
+            const removeInteriorRef = ref_storage(storage, "vet-interiors/place" + vetIndex.toString() + "/" + imageName)
+            deleteObject(removeInteriorRef)
+            setTimeout(() => {
+                location.reload()
+            }, 500);
+        }
     }
 
     function handleSignOut() {
@@ -284,6 +306,13 @@ export default function Profile() {
         } else {
             setIsNewClinicImageUploaded(false)
             setNewClinicImage(undefined)
+            setNewClinicData((prevState) => ({
+                ...prevState,
+                openTimeHour: clinicData?.openTime.split(":")[0],
+                openTimeMinute: clinicData?.openTime.split(":")[1],
+                closeTimeHour: clinicData?.closeTime.split(":")[0],
+                closeTimeMinute: clinicData?.closeTime.split(":")[1]
+            }))
         }
     }, [editOpen])
 
@@ -408,10 +437,22 @@ export default function Profile() {
                 address: clinicData.address,
                 phoneNumber: clinicData.phoneNumber,
                 whiteboard: clinicData.whiteboard,
+                openTimeHour: clinicData.openTime.split(":")[0],
+                openTimeMinute: clinicData.openTime.split(":")[1],
+                closeTimeHour: clinicData.closeTime.split(":")[0],
+                closeTimeMinute: clinicData.closeTime.split(":")[1]
             }))
             setNewClinicImage(clinicImage)
+            setTimeSlots(createTimeSlots("07:00", "24:00", timeSlotsSet, new Date(), "profile"))
+            setIsTimeSlotsLoaded(true)
         }
     }, [isClinicDataLoaded, isStaffListLoaded, isStaffImageListLoaded, isInteriorImageLoaded])
+
+    useEffect(() => {
+        if (isTimeSlotsLoaded) {
+            setHourSet(new Set(timeSlots.map(timeString => timeString.split(':')[0])))
+        }
+    }, [isTimeSlotsLoaded])
 
     return (
         <main className='flex w-screen h-max'>
@@ -438,6 +479,10 @@ export default function Profile() {
                                         <PhoneNumber />
                                         <span className='font-semibold text-lg'>{clinicData.phoneNumber}</span>
                                     </div>
+                                    <div className='flex flex-row w-full p-2 gap-x-5 items-center'>
+                                        <Time width='24' height='24' fill='#45e14f' />
+                                        <span className='font-semibold text-lg'>{clinicData.openTime} - {clinicData.closeTime}</span>
+                                    </div>
                                 </div>
                                 <div className='flex flex-col w-1/2 gap-y-2 justify-center'>
                                     <div className='flex flex-row w-full p-1 gap-x-5 items-center'>
@@ -447,7 +492,7 @@ export default function Profile() {
                                     <div className='w-full h-2/3 max-h-[133px] overflow-scroll p-3 rounded-3xl border-2 border-gray-300'>
                                         <p className='text-sm text-justify'>{clinicData.whiteboard}</p>
                                     </div>
-                                    <button onClick={() => setEditOpen(true)} className='flex w-full h-[30%] justify-center items-center gap-x-2 rounded-2xl bg-petgreen active:bg-activepetgreen font-semibold text-xl'>
+                                    <button onClick={() => setEditOpen(true)} className='flex mt-3 w-full h-[30%] justify-center items-center gap-x-2 rounded-2xl bg-petgreen active:bg-activepetgreen font-semibold text-xl'>
                                         <Edit />
                                         Edit Clinic Profile
                                     </button>
@@ -607,7 +652,7 @@ export default function Profile() {
                 slots={{ backdrop: Backdrop }}
                 className='z-50 fixed inset-0 flex justify-center items-center'
             >
-                <div className='flex flex-col w-5/12 h-5/6 p-5 justify-center items-center bg-white rounded-2xl'>
+                <div className='flex flex-col w-5/12 h-[95%] p-5 justify-center items-center bg-white rounded-2xl'>
                     <div className='flex w-full pb-5 justify-between items-center'>
                         <span className='font-semibold text-3xl'>Edit Clinic Profile</span>
                         <button onClick={() => setEditOpen(false)}>
@@ -626,8 +671,8 @@ export default function Profile() {
                         }
                         <input id='clinic-image-file' type='file' accept='image/*' className='inline-flex ml-20 pb-2' />
                     </div>
-                    <div className='flex-1 flex w-full'>
-                        <div className='flex flex-col w-1/2 h-full pr-3 justify-evenly items-end'>
+                    <div className='flex-1 flex w-full py-5'>
+                        <div className='flex flex-col w-1/2 h-full pr-3 gap-y-3 justify-evenly items-end'>
                             <div className='inline-flex flex-col w-11/12 h-fit'>
                                 <span className='ml-2'>Address</span>
                                 <input value={newClinicData.address} onChange={(e) => handleClinicInputChange(e, 'address')} placeholder='e.g. 123 Main Street' type="text" name="name" id="name" className='p-3 rounded-2xl border-2 border-gray-300' />
@@ -636,15 +681,66 @@ export default function Profile() {
                                 <span className='ml-2'>Phone Number</span>
                                 <input value={newClinicData.phoneNumber} onChange={(e) => handleClinicInputChange(e, 'phoneNumber')} placeholder='e.g. 0123456789' type="tel" name="name" id="name" className='p-3 rounded-2xl border-2 border-gray-300' />
                             </div>
+                            <div className='inline-flex flex-col w-11/12 h-fit'>
+                                <span className='ml-2'>Location</span>
+                                <input value={newClinicData.location} onChange={(e) => handleClinicInputChange(e, 'location')} placeholder='e.g. Subang Jaya' type="text" name="location" id="location" className='p-3 rounded-2xl border-2 border-gray-300' />
+                            </div>
                         </div>
-                        <div className='flex flex-col w-1/2 h-full pl-3 justify-evenly items-start'>
+                        <div className='flex flex-col w-1/2 h-full pl-3 gap-y-3 justify-evenly items-start'>
                             <div className='inline-flex flex-col w-11/12 h-fit'>
                                 <span className='ml-2'>Whiteboard</span>
                                 <textarea value={newClinicData.whiteboard} onChange={(e) => handleClinicInputChange(e, 'whiteboard')} placeholder='Write a message to your staff' name="whiteboard" id="whiteboard" className='p-3 rounded-2xl border-2 border-gray-300'></textarea>
                             </div>
                             <div className='inline-flex flex-col w-11/12 h-fit'>
-                                <span className='ml-2'>Location</span>
-                                <input value={newClinicData.location} onChange={(e) => handleClinicInputChange(e, 'location')} placeholder='e.g. Subang Jaya' type="text" name="location" id="location" className='p-3 rounded-2xl border-2 border-gray-300' />
+                                <span className='ml-2'>Opening Time</span>
+                                <div className='flex flex-row items-center gap-x-3'>
+                                    <select value={newClinicData.openTimeHour} onChange={(e) => handleClinicInputChange(e, 'openTimeHour')} name="openTime" id="openTime" className='p-3 rounded-2xl bg-white border-2 border-gray-300'>
+                                        {
+                                            Array.from(hourSet).map((slot) => {
+                                                console.log(slot)
+                                                const hourPart = slot.split(":")[0]
+                                                return (
+                                                    <option key={hourPart} value={hourPart} className='font-sans'>{hourPart}</option>
+                                                )
+                                            })
+                                        }
+                                    </select>
+                                    <span className='font-medium text-lg'>:</span>
+                                    <select value={newClinicData.openTimeMinute} onChange={(e) => handleClinicInputChange(e, 'openTimeMinute')} name="openTime" id="openTime" className='p-3 rounded-2xl bg-white border-2 border-gray-300'>
+                                        {
+                                            minuteSlots.map((slot) => {
+                                                return (
+                                                    <option key={slot} value={slot} className='font-sans'>{slot}</option>
+                                                )
+                                            })
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div className='inline-flex flex-col w-11/12 h-fit'>
+                                <span className='ml-2'>Closing Time</span>
+                                <div className='flex flex-row items-center gap-x-3'>
+                                    <select value={newClinicData.closeTimeHour} onChange={(e) => handleClinicInputChange(e, 'closeTimeHour')} name="closeTime" id="closeTime" className='p-3 rounded-2xl bg-white border-2 border-gray-300'>
+                                        {
+                                            Array.from(hourSet).map((slot) => {
+                                                const hourPart = slot.split(":")[0]
+                                                return (
+                                                    <option key={hourPart} value={hourPart} className='font-sans'>{hourPart}</option>
+                                                )
+                                            })
+                                        }
+                                    </select>
+                                    <span className='font-medium text-lg'>:</span>
+                                    <select value={newClinicData.closeTimeMinute} onChange={(e) => handleClinicInputChange(e, 'closeTimeMinute')} name="closeTime" id="closeTime" className='p-3 rounded-2xl bg-white border-2 border-gray-300'>
+                                        {
+                                            minuteSlots.map((slot) => {
+                                                return (
+                                                    <option key={slot} value={slot} className='font-sans'>{slot}</option>
+                                                )
+                                            })
+                                        }
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
