@@ -316,14 +316,14 @@ export default function Home() {
   }, [emptyState.popupVisible])
 
   useEffect(() => {
-    if (isSlotsFetched) {
-      const openTime = clinicData?.openTime
-      const closeTime = clinicData?.closeTime
+    if (isSlotsFetched && isClinicDataLoaded) {
+      const openTime = clinicData.openTime
+      const closeTime = clinicData.closeTime
       setSlots(createTimeSlots(openTime, closeTime, bookedSlotsSet, emptyState.editData.startDate, "scheduler"))
       setIsSlotsFetched(false)
       setIsSlotsLoaded(true)
     }
-  }, [isSlotsFetched])
+  }, [isSlotsFetched, isClinicDataLoaded])
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -357,7 +357,7 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    if (vetIndex > 0) {
+    if (vetIndex !== -1) {
       const clinicRef = ref_db(db, "places/place" + (vetIndex + 1).toString())
       const clinicListener = onValue(clinicRef, (snapshot) => {
         const data = snapshot.val()
