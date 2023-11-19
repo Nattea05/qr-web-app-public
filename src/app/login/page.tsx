@@ -48,8 +48,7 @@ export default function Login() {
                 <span className="font-medium text-lg text-gray-700">Please enter your details</span>
                 <input className={`w-10/12 p-4 border-b-2 ${focusedInput === "email" ? "border-petgreen placeholder:text-petgreen" : "border-gray-300"}`} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} onFocus={() => setFocusedInput("email")} onBlur={() => setFocusedInput("")} />
                 <input className={`w-10/12 p-4 border-b-2 ${focusedInput === "password" ? "border-petgreen placeholder:text-petgreen" : "border-gray-300"}`} type="password" placeholder="Password" value={password} onChange={(p) => setPassword(p.target.value)} onFocus={() => setFocusedInput("password")} onBlur={() => setFocusedInput("")} />
-                <button className="w-10/12 p-4 mt-2 text-center text-xl font-bold rounded-full bg-petgreen active:accent-activepetgreen" onClick={() => handleLogin()}>Login</button>
-                {/* <span>Don&apos;t have an account? <Link href="/login/signup" className="text-petgreen">Register here</Link></span> */}
+                <button className="w-10/12 p-4 mt-2 text-center text-xl font-bold rounded-full bg-petgreen active:bg-activepetgreen" onClick={() => handleLogin()}>Login</button>
             </div>
         </main>
     )
