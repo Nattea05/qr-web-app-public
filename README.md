@@ -9,6 +9,23 @@ Access the website <a href="https://qr-web-app-two.vercel.app/login">here</a>
   Password: Vet123@
 </details>
 
+In the current landscape of veterinary practice management and pet care in Malaysia, veterinary practices and pet owners face a significant challenge due to the absence of a centralized distributed system for streamlined appointment management and efficient retrieval of medical data. There are few veterinary practice management software that offer their services in Malaysia, and those that do offer it at premium recurring fees, which is not ideal for veterinary practices that would rather focus their budget on equipment and medicine. Additionally, they also lack the means to quickly provide vet practices with the appropriate medical records for veterinarians to make informed decisions during the appointment. Therefore, developing a system to address these issues will allow both veterinary practices and pet owners to optimize their pet care experiences.
+
+## Created With
+**Next.js**
+<br />
+![Next js Icon(1)](https://github.com/user-attachments/assets/a69cddc9-3c7d-4d81-8641-337237cf541f)
+
+
+**Firebase**
+<br />
+![Primary_Vertical_Lockup_Full_Color(1)](https://github.com/user-attachments/assets/e2999f33-cc57-4f2d-8c73-68b6baeefe70)
+
+
+**React Native**
+<br />
+![react 256x256-removebg-preview(1)](https://github.com/user-attachments/assets/8ffe741c-739f-4d5d-b410-ad440f29d01a)
+
 ## Key Features
 **1. QR-based Electronic Pet Medical Records**: Allows owners to easily share access with clinics, reducing time taken to perform administrative work.
 
