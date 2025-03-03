@@ -1,5 +1,5 @@
 ![pawsitivity-logo](https://github.com/user-attachments/assets/f2b2bfc3-3ec5-43e5-bb75-141fa9daed22)
-# <p style="text-align: center;">Pawsitivity, a Veterinary Practice Management Web App</p>
+# <p style="text-align: center;">Pawsitivity (for Vet Clinics), a Veterinary Practice Management Web App</p>
 Access the website <a href="https://qr-web-app-two.vercel.app/login">here</a>
 <br />
 <details>
